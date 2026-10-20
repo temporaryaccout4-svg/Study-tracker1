@@ -1,0 +1,112 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#174f45">
+<meta name="description" content="Interactive 17-study-day StudySprint tracker for NEB and CEE preparation.">
+<link rel="manifest" href="manifest.webmanifest">
+<title>StudySprint · 17-day tracker</title>
+<style>
+:root{--bg:#f3f6f4;--card:#fff;--ink:#18312c;--muted:#62736e;--accent:#176b57;--line:#dce6e1;--soft:#e7f2ed;--warn:#fff3d6}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.45 system-ui,-apple-system,Segoe UI,Roboto,sans-serif}
+header{background:#174f45;color:white;padding:22px 18px 24px;border-radius:0 0 24px 24px}
+.wrap{max-width:850px;margin:auto;padding:0 14px 30px}header .wrap{padding-bottom:0}
+.kicker{font-size:.78rem;letter-spacing:.08em;text-transform:uppercase;opacity:.8}h1{margin:5px 0;font-size:1.8rem}header p{margin:4px 0 0;color:#dcece6}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:16px 0}.stat,.panel{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:14px}.stat strong{display:block;font-size:1.45rem}.stat span,.muted{color:var(--muted);font-size:.84rem}
+.progress{height:9px;background:#e5ece8;border-radius:20px;overflow:hidden;margin-top:8px}.progress div{height:100%;background:var(--accent);width:0%;transition:width .2s}
+.panel{margin-top:12px}.row{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}h2{font-size:1.1rem;margin:0 0 10px}label{font-size:.9rem;font-weight:650}
+select,input,textarea,button{font:inherit}select,input[type=date],input[type=text],input[type=number],textarea{border:1px solid #cbd9d2;border-radius:10px;padding:10px;background:white;color:var(--ink);max-width:100%}select{width:100%}
+.day-select{display:grid;grid-template-columns:1fr 1fr;gap:10px}.field{display:flex;flex-direction:column;gap:5px;min-width:0;flex:1}
+.task{display:grid;grid-template-columns:25px 1fr;gap:10px;padding:12px 0;border-bottom:1px solid var(--line)}.task:last-child{border-bottom:0}.task input{width:20px;height:20px;accent-color:var(--accent);margin-top:3px}.task-title{font-weight:600}.task.done .task-title{text-decoration:line-through;color:var(--muted)}.task small{display:block;color:var(--muted);margin-top:3px}
+.btns{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}button{border:0;border-radius:10px;padding:10px 13px;background:var(--accent);color:white;font-weight:650;cursor:pointer}button.secondary{background:var(--soft);color:var(--ink);border:1px solid var(--line)}button.danger{background:#fff0ed;color:#8e2f21;border:1px solid #f1d1c9}button:focus,select:focus,input:focus,textarea:focus{outline:3px solid #b6d9cc;outline-offset:1px}
+.note{background:var(--warn);padding:12px;border-radius:12px;font-size:.88rem}.phase-list{display:grid;grid-template-columns:repeat(4,1fr);gap:7px}.phase{border:1px solid var(--line);border-radius:10px;padding:9px;font-size:.78rem;background:#fff}.phase strong{display:block}
+footer{color:var(--muted);font-size:.78rem;text-align:center;padding:18px 5px}
+@media(max-width:520px){.stats{gap:7px}.stat{padding:10px}.stat strong{font-size:1.2rem}.day-select{grid-template-columns:1fr}.phase-list{grid-template-columns:1fr 1fr}h1{font-size:1.55rem}}
+</style>
+</head>
+<body>
+<header><div class="wrap"><div class="kicker">NEB + CEE · Flexible dates</div><h1>StudySprint</h1><p>Your 17-study-day plan. Small steps, visible progress.</p></div></header>
+<main class="wrap">
+<section class="stats">
+ <div class="stat"><strong id="overall">0%</strong><span>Overall complete</span></div>
+ <div class="stat"><strong id="finished">0 / 85</strong><span>Tasks checked</span></div>
+ <div class="stat"><strong id="daysDone">0 / 17</strong><span>Days completed</span></div>
+</section>
+<div class="panel"><div class="row"><label for="overallbar">Whole-plan progress</label><span class="muted" id="savedStatus">Saved on this device</span></div><div class="progress"><div id="overallbar"></div></div></div>
+
+<section class="panel">
+ <h2>Choose a study day</h2>
+ <div class="day-select">
+  <div class="field"><label for="daySelect">Plan day</label><select id="daySelect"></select></div>
+  <div class="field"><label for="dateSelect">Your chosen date (optional)</label><input id="dateSelect" type="date"></div>
+ </div>
+ <p class="muted">Dates can be non-consecutive. Taking a festival day off won't skip a plan.</p>
+ <div class="phase-list">
+  <div class="phase"><strong>Days 1–4</strong>Foundation</div><div class="phase"><strong>Days 5–8</strong>Understanding</div><div class="phase"><strong>Days 9–13</strong>Testing</div><div class="phase"><strong>Days 14–17</strong>Consolidation</div>
+ </div>
+</section>
+
+<section class="panel">
+ <div class="row"><h2 id="dayTitle">Day 1</h2><span id="dayProgress" class="muted">0 / 5 tasks</span></div>
+ <div class="progress"><div id="daybar"></div></div>
+ <div id="tasks"></div>
+ <div class="btns"><button class="secondary" id="prev">← Previous day</button><button id="next">Next study day →</button></div>
+</section>
+
+<section class="panel">
+ <h2>Edit the selected day's plan</h2>
+ <p class="muted">You can change a task's wording and time, add tasks, or remove tasks. Your edits and checkmarks are saved locally in this browser.</p>
+ <div id="editor"></div>
+ <div class="btns"><button class="secondary" id="addTask">+ Add task</button><button class="secondary" id="resetDay">Restore this day's original plan</button></div>
+</section>
+
+<section class="panel">
+ <h2>Backup & restore</h2>
+ <p class="muted">Export a backup before clearing browser data or moving to another device.</p>
+ <div class="btns"><button id="export">Export backup</button><button class="secondary" id="importBtn">Import backup</button><button class="danger" id="resetAll">Reset all progress</button><input id="importFile" type="file" accept="application/json" hidden></div>
+</section>
+
+<section class="panel">
+ <h2>Daily study method</h2>
+ <ul>
+  <li>Work in focused blocks and take short breaks between them.</li>
+  <li>Attempt questions before viewing solutions; keep an error log.</li>
+  <li>Keep personal-development reading light so academics remain the priority.</li>
+  <li>If you miss a date, continue with the next unfinished study day.</li>
+ </ul>
+ <div class="note"><strong>Target:</strong> 3–4 hours of focused academic study. The task durations are adjustable targets, not a reason to sacrifice sleep. Household chores are not included.</div>
+</section>
+<footer>StudySprint stores progress in this browser on this device. Use Export backup regularly. Browser storage is not the same as cloud sync.</footer>
+</main>
+<script>
+const originalPlans = [{"title": "Day 1 · Start strong", "tasks": [{"text": "Biology notes: compress Plasmodium vivax introduction, structure and key terms", "minutes": 55}, {"text": "Physics: revise kinematics concepts, distance/displacement and speed/velocity", "minutes": 45}, {"text": "Chemistry: solve stoichiometry worked examples and 8 practice questions", "minutes": 50}, {"text": "Recall without notes; list unfinished Biology-note sections", "minutes": 20}, {"text": "Personal-development reading", "minutes": 10}]}, {"title": "Day 2 · Finish the core notes", "tasks": [{"text": "Biology notes: organize Plasmodium life cycle into numbered stages and a simple diagram", "minutes": 55}, {"text": "Physics: position-time and velocity-time graphs; interpret slopes and areas", "minutes": 45}, {"text": "Chemistry: stoichiometry calculations and unit/mole conversions", "minutes": 50}, {"text": "School work: complete one pending written task or current lesson review", "minutes": 20}, {"text": "Personal-development reading", "minutes": 10}]}, {"title": "Day 3 · Close the Biology notes", "tasks": [{"text": "Biology: finish and compress remaining Plasmodium vivax notes; check against the textbook", "minutes": 55}, {"text": "Physics: practise vector resolution and basic vector numericals", "minutes": 45}, {"text": "Chemistry: revise atomic structure and solve short questions", "minutes": 50}, {"text": "Closed-book Biology recall; correct missing points in a different colour", "minutes": 20}, {"text": "Personal-development reading", "minutes": 10}]}, {"title": "Day 4 · Test your foundations", "tasks": [{"text": "Biology: redraw the Plasmodium life cycle from memory and explain key stages", "minutes": 45}, {"text": "Mathematics: practise logic/set operations and real-number questions", "minutes": 50}, {"text": "Chemistry: periodic classification—trends, definitions and NEB questions", "minutes": 50}, {"text": "English or Nepali: practise one writing or grammar task", "minutes": 25}, {"text": "Personal-development reading", "minutes": 10}]}, {"title": "Day 5 · Kinematics practice", "tasks": [{"text": "Physics: solve NEB-style kinematics numericals without looking at solutions first", "minutes": 55}, {"text": "Biology: revise biomolecules using a comparison table and active recall", "minutes": 45}, {"text": "Chemistry: atomic structure MCQs and explanations for wrong answers", "minutes": 50}, {"text": "Create an error list and redo two missed questions", "minutes": 20}, {"text": "Personal-development reading", "minutes": 10}]}, {"title": "Day 6 · Biology and mathematics", "tasks": [{"text": "Biology: revise cell cycle phases and their significance; draw a simple sequence", "minutes": 50}, {"text": "Mathematics: matrices—operations, properties and selected problems", "minutes": 50}, {"text": "Physics: heat and temperature concepts with unit conversions", "minutes": 50}, {"text": "School work: review current class notes or finish one pending task", "minutes": 20}, {"text": "Personal-development reading", "minutes": 10}]}, {"title": "Day 7 · Bonding and evolution", "tasks": [{"text": "Chemistry: chemical bonding, VSEPR and shapes; connect structures to examples", "minutes": 55}, {"text": "Biology: evolutionary biology—evidence, theories and key comparisons", "minutes": 45}, {"text": "CEE practice: 15–20 syllabus-aligned Biology/Chemistry MCQs with explanations", "minutes": 45}, {"text": "Recall the hardest concepts without notes", "minutes": 25}, {"text": "Personal-development reading", "minutes": 10}]}, {"title": "Day 8 · Thermal physics", "tasks": [{"text": "Physics: thermal expansion—formulae, units and numerical problems", "minutes": 55}, {"text": "Chemistry: revise stoichiometry and atomic structure through mixed questions", "minutes": 45}, {"text": "Biology: faunal diversity—classify the groups currently covered in class", "minutes": 50}, {"text": "English or Nepali: practise a short answer, paragraph or grammar exercise", "minutes": 20}, {"text": "Personal-development reading", "minutes": 10}]}, {"title": "Day 9 · First mixed checkpoint", "tasks": [{"text": "Biology: timed short-answer test from biomolecules, cell cycle and evolution", "minutes": 45}, {"text": "Physics: mixed kinematics and thermal-expansion numericals", "minutes": 50}, {"text": "Chemistry: timed MCQ set on stoichiometry, atomic structure and classification", "minutes": 45}, {"text": "Mark answers and classify errors: knowledge, concept or calculation", "minutes": 30}, {"text": "Personal-development reading", "minutes": 10}]}, {"title": "Day 10 · Repair weak areas", "tasks": [{"text": "Biology: revise the two weakest topics from Day 9 and answer questions again", "minutes": 50}, {"text": "Physics: quantity of heat and specific heat capacity; solve numericals", "minutes": 50}, {"text": "Mathematics: practise the current school topic or revisit difficult matrix/set problems", "minutes": 45}, {"text": "Write a one-page error summary in your own words", "minutes": 25}, {"text": "Personal-development reading", "minutes": 10}]}, {"title": "Day 11 · NEB written-answer skills", "tasks": [{"text": "Biology: write two exam-style answers with headings, keywords and labelled diagrams where useful", "minutes": 50}, {"text": "Chemistry: bonding and molecular-shape questions, including VBT only within your covered syllabus", "minutes": 50}, {"text": "English or Nepali: one timed writing/grammar task", "minutes": 40}, {"text": "Check answers against notes and improve missing points", "minutes": 30}, {"text": "Personal-development reading", "minutes": 10}]}, {"title": "Day 12 · CEE question practice", "tasks": [{"text": "CEE-style practice: 20 Biology MCQs from studied chapters", "minutes": 40}, {"text": "CEE-style practice: 15 Physics questions from studied chapters", "minutes": 45}, {"text": "CEE-style practice: 15 Chemistry questions from studied chapters", "minutes": 45}, {"text": "Analyse every wrong or guessed answer and retry without the key", "minutes": 40}, {"text": "Personal-development reading", "minutes": 10}]}, {"title": "Day 13 · Build speed and accuracy", "tasks": [{"text": "Physics: timed mixed numerical set; show steps and check units", "minutes": 50}, {"text": "Chemistry: timed mixed MCQs and short calculations", "minutes": 50}, {"text": "Biology: active-recall test on Plasmodium, biomolecules and cell cycle", "minutes": 45}, {"text": "Revisit the three most frequent errors from your log", "minutes": 25}, {"text": "Personal-development reading", "minutes": 10}]}, {"title": "Day 14 · Biology consolidation", "tasks": [{"text": "Biology: cumulative written test across studied chapters", "minutes": 50}, {"text": "Biology: check the test and revise only missing or confused points", "minutes": 40}, {"text": "Physics: revise formulas and solve five representative numericals", "minutes": 45}, {"text": "Update your weak-topic list and choose tomorrow's priorities", "minutes": 25}, {"text": "Personal-development reading", "minutes": 10}]}, {"title": "Day 15 · Physics and Chemistry checkpoint", "tasks": [{"text": "Physics: timed mixed test from kinematics, heat and thermal expansion", "minutes": 50}, {"text": "Chemistry: timed test from stoichiometry, atomic structure, classification and bonding", "minutes": 55}, {"text": "Check both tests and redo incorrect questions", "minutes": 40}, {"text": "Review current school notes or a pending written assignment", "minutes": 15}, {"text": "Personal-development reading", "minutes": 10}]}, {"title": "Day 16 · Personal weak-topic day", "tasks": [{"text": "Choose your weakest Biology topic and answer questions from memory", "minutes": 45}, {"text": "Choose your weakest Physics topic and solve targeted problems", "minutes": 45}, {"text": "Choose your weakest Chemistry topic and complete targeted MCQs", "minutes": 45}, {"text": "Re-test yesterday's errors and record what improved", "minutes": 30}, {"text": "Personal-development reading", "minutes": 10}]}, {"title": "Day 17 · Final review and next steps", "tasks": [{"text": "Complete a mixed diagnostic from all subjects studied during the 17 days", "minutes": 60}, {"text": "Mark the diagnostic and compare results with your error log", "minutes": 35}, {"text": "Make a concise list of mastered topics and topics needing further work", "minutes": 30}, {"text": "Organize notes and create your next study-cycle priorities", "minutes": 25}, {"text": "Personal-development reading", "minutes": 10}]}];
+const STORE = "studysprint-v1";
+let state;
+function freshState(){return {plans:JSON.parse(JSON.stringify(originalPlans)),checks:{},dates:{}}}
+function load(){try{let raw=localStorage.getItem(STORE);if(!raw)return freshState();let s=JSON.parse(raw);if(!Array.isArray(s.plans)||s.plans.length!==17) return freshState();return s}catch(e){return freshState()}}
+state=load();
+const $=id=>document.getElementById(id);
+function save(){try{localStorage.setItem(STORE,JSON.stringify(state));$("savedStatus").textContent="Saved ✓";}catch(e){$("savedStatus").textContent="Save failed — export a backup";}renderStats()}
+function day(){return Number($("daySelect").value||1)-1}
+function key(d,i){return `${d}-${i}`}
+function checked(d,i){return !!state.checks[key(d,i)]}
+function setCheck(d,i,v){state.checks[key(d,i)]=v;save();renderDay();renderEditor()}
+function renderSelect(){let sel=$("daySelect"),old=sel.value;sel.innerHTML="";state.plans.forEach((p,i)=>{let o=document.createElement("option");o.value=i+1;o.textContent=p.title;sel.appendChild(o)});sel.value=old||"1"}
+function renderStats(){let total=0,done=0,days=0;state.plans.forEach((p,d)=>{let n=p.tasks.length;total+=n;let dn=p.tasks.filter((t,i)=>checked(d,i)).length;done+=dn;if(n>0&&dn===n)days++});$("overall").textContent=(total?Math.round(done/total*100):0)+"%";$("finished").textContent=`${done} / ${total}`;$("daysDone").textContent=`${days} / 17`;$("overallbar").style.width=(total?done/total*100:0)+"%"}
+function renderDay(){let d=day(),p=state.plans[d];$("dayTitle").textContent=p.title;$("dateSelect").value=state.dates[d]||"";let done=p.tasks.filter((t,i)=>checked(d,i)).length;$("dayProgress").textContent=`${done} / ${p.tasks.length} tasks`;$("daybar").style.width=(p.tasks.length?done/p.tasks.length*100:0)+"%";let root=$("tasks");root.innerHTML="";p.tasks.forEach((t,i)=>{let row=document.createElement("div");row.className="task"+(checked(d,i)?" done":"");let cb=document.createElement("input");cb.type="checkbox";cb.checked=checked(d,i);cb.setAttribute("aria-label","Complete "+t.text);cb.addEventListener("change",()=>setCheck(d,i,cb.checked));let content=document.createElement("div");let title=document.createElement("div");title.className="task-title";title.textContent=t.text;let small=document.createElement("small");small.textContent=`${Number(t.minutes)||0} minutes`;content.append(title,small);row.append(cb,content);root.appendChild(row)});$("prev").disabled=d===0;$("next").disabled=d===16;renderStats()}
+function renderEditor(){let d=day(),p=state.plans[d],root=$("editor");root.innerHTML="";p.tasks.forEach((t,i)=>{let wrap=document.createElement("div");wrap.className="task";let main=document.createElement("div");main.style.gridColumn="1 / -1";let title=document.createElement("label");title.textContent=`Task ${i+1}`;title.style.display="block";title.style.marginBottom="5px";let textInput=document.createElement("input");textInput.type="text";textInput.value=t.text;textInput.style.width="100%";textInput.setAttribute("aria-label",`Task ${i+1} description`);textInput.addEventListener("change",()=>{t.text=textInput.value.trim()||"Study task";save();renderDay();renderEditor()});let timeRow=document.createElement("div");timeRow.className="row";timeRow.style.marginTop="7px";let mins=document.createElement("input");mins.type="number";mins.min="0";mins.max="240";mins.value=t.minutes;mins.style.width="110px";mins.setAttribute("aria-label",`Task ${i+1} minutes`);mins.addEventListener("change",()=>{t.minutes=Math.max(0,Math.min(240,Number(mins.value)||0));save();renderDay();renderEditor()});let minLabel=document.createElement("span");minLabel.className="muted";minLabel.textContent="minutes";let remove=document.createElement("button");remove.className="danger";remove.textContent="Remove";remove.addEventListener("click",()=>{if(confirm("Remove this task?")){p.tasks.splice(i,1);delete state.checks[key(d,i)];save();renderDay();renderEditor()}});timeRow.append(mins,minLabel,remove);main.append(title,textInput,timeRow);wrap.appendChild(main);root.appendChild(wrap)})}
+$("daySelect").addEventListener("change",()=>{renderDay();renderEditor()});
+$("dateSelect").addEventListener("change",()=>{state.dates[day()]=$("dateSelect").value;save()});
+$("prev").addEventListener("click",()=>{$("daySelect").value=String(day());$("daySelect").value=String(Math.max(1,day()));renderDay();renderEditor()});
+$("next").addEventListener("click",()=>{$("daySelect").value=String(Math.min(17,day()+2));renderDay();renderEditor()});
+$("addTask").addEventListener("click",()=>{let d=day();state.plans[d].tasks.push({text:"New study task — edit me",minutes:25});save();renderDay();renderEditor()});
+$("resetDay").addEventListener("click",()=>{if(confirm("Restore this day's original tasks and clear its checkmarks?")){let d=day();state.plans[d]=JSON.parse(JSON.stringify(originalPlans[d]));state.plans[d].tasks.forEach((t,i)=>delete state.checks[key(d,i)]);save();renderDay();renderEditor()}});
+$("export").addEventListener("click",()=>{let blob=new Blob([JSON.stringify(state,null,2)],{type:"application/json"});let a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download="studysprint-backup.json";a.click();URL.revokeObjectURL(a.href)});
+$("importBtn").addEventListener("click",()=>$("importFile").click());
+$("importFile").addEventListener("change",async e=>{let f=e.target.files[0];if(!f)return;try{let parsed=JSON.parse(await f.text());if(!Array.isArray(parsed.plans)||parsed.plans.length!==17||!parsed.checks)throw Error("Invalid backup");state=parsed;renderSelect();save();renderDay();renderEditor();alert("Backup restored.")}catch(err){alert("That file doesn't look like a valid StudySprint backup.")}e.target.value=""});
+$("resetAll").addEventListener("click",()=>{if(confirm("Reset every task, edit, date and checkmark? Export a backup first if needed.")){state=freshState();renderSelect();save();renderDay();renderEditor()}});
+renderSelect();renderDay();renderEditor();renderStats();
+if("serviceWorker" in navigator && location.protocol.startsWith("http")) navigator.serviceWorker.register("./sw.js").catch(()=>{});
+</script>
+</body></html>
